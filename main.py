@@ -247,11 +247,11 @@ def Stitch(photo1,photo2):
     result = Warp(img1.shape[0] + img2.shape[0],img1.shape[1],mTrans,img2,img1)
     return result
 
-photo1 = cv.imread("C:\\Users\\as881\\Desktop\\CV\\1.bmp",0)
-photo2 = cv.imread("C:\\Users\\as881\\Desktop\\CV\\2.bmp",0)
-photo3 = cv.imread("C:\\Users\\as881\\Desktop\\CV\\3.bmp",0)
-photo4 = cv.imread("C:\\Users\\as881\\Desktop\\CV\\4.bmp",0)
-photo5 = cv.imread("C:\\Users\\as881\\Desktop\\CV\\5.bmp",0)
+photo1 = cv.imread("./1.bmp",0)
+photo2 = cv.imread("./2.bmp",0)
+photo3 = cv.imread("./3.bmp",0)
+photo4 = cv.imread("./4.bmp",0)
+photo5 = cv.imread("./5.bmp",0)
 
 
 result1 = Stitch(photo1, photo2)
@@ -263,6 +263,6 @@ result3 = Stitch(result2, photo4)
 cv.imshow('Stitch4',result3)
 finalResult = Stitch(result3, photo5)
 cv.imshow('result',finalResult)
-
+cv.imwrite('result.bmp',finalResult)
 cv.waitKey()
 
