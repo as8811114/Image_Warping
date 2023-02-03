@@ -5,13 +5,13 @@
 # 實作細節
 **實作:**
 
-`	`**步驟1:**
+**步驟1:**
 
 首先我先透過SIFT演算法找出兩張待轉換的圖片的所有特徵點，
 
 ![image](https://user-images.githubusercontent.com/43846907/216083862-c9503704-b1ad-48b7-9aca-503604bb014d.png)
 
-`    `**SIFT(尺度不變特徵轉換)演算法:**
+**SIFT(尺度不變特徵轉換)演算法:**
 
 SIFT演算法是一只用來偵測圖片特徵點的演算法，SIFT演算法當中具有尺度不變性，旋轉圖片、改變影像亮度、拍攝視角等皆不會影響特徵點的找尋，因為一個點是否為特徵點會因為周圍的光暗程度以及圖片大小程度有所關係，例如有個點可能在整體來看為特徵點，但是若將該點放大到很多倍之後可能會變為一條線視為非特徵點。
 
@@ -38,45 +38,41 @@ DOG透過將兩個相鄰的高斯尺度影像相減來獲得，獲得了DOG之�
 
 SIFT達到旋轉不變性的方法就是先將圖片旋轉到主方向，而這個方向是透過圖片的梯度所得到，這樣就能保證座標軸與影像的相對位址保持一致而達到旋轉不變性。
 
-`	`**步驟2:**
+**步驟2:**
 
-`		`做完了SIFT找到特徵點後我就有了第一張圖的特徵點描述子res1 和 第二張圖的特徵點描述子res2，我將他們使用KNN找出兩組特徵點間，最相似的三個特徵點來將他們加入到候選的對齊點當中，透過比對m n k 三點的距離來找出一個距離最短的點數當作候選點放入good陣列裡面。
+做完了SIFT找到特徵點後我就有了第一張圖的特徵點描述子res1 和 第二張圖的特徵點描述子res2，我將他們使用KNN找出兩組特徵點間，最相似的三個特徵點來將他們加入到候選的對齊點當中，透過比對m n k 三點的距離來找出一個距離最短的點數當作候選點放入good陣列裡面。
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084237-b50a0cca-5fd7-490b-b410-233bc4352442.png)
+![image](https://user-images.githubusercontent.com/43846907/216084237-b50a0cca-5fd7-490b-b410-233bc4352442.png)
 
-`	`接下來需要找到一個合適的Projection Matrix來將圖片二的點扭曲對應到圖片一當中，這個Projection Matrix最好能夠挑的夠精準這樣才能夠讓誤差最小，因此這邊需要使用RANSAC演算法來挑出合適的Matrix點。
+接下來需要找到一個合適的Projection Matrix來將圖片二的點扭曲對應到圖片一當中，這個Projection Matrix最好能夠挑的夠精準這樣才能夠讓誤差最小，因此這邊需要使用RANSAC演算法來挑出合適的Matrix點。
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084281-7e1cd968-a4cc-4fa9-90e6-46a1bafda69b.png)
+![image](https://user-images.githubusercontent.com/43846907/216084281-7e1cd968-a4cc-4fa9-90e6-46a1bafda69b.png)
 
-`	`在做RANSAC之前需要先有Projective Mapping Matrix 因此我先計算出所需要的矩陣。
+在做RANSAC之前需要先有Projective Mapping Matrix 因此我先計算出所需要的矩陣。
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084312-6eff643c-2796-4f27-8585-9db15f59ea67.png)
+![image](https://user-images.githubusercontent.com/43846907/216084312-6eff643c-2796-4f27-8585-9db15f59ea67.png)
 
-`	`將4組候選點整理成Ax=0的形式，A為上圖的左邊大矩陣而x為右邊A11~A33矩陣，因此我先將左邊矩陣給建立好如下圖。
+將4組候選點整理成Ax=0的形式，A為上圖的左邊大矩陣而x為右邊A11~A33矩陣，因此我先將左邊矩陣給建立好如下圖。
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084338-f1c14c30-a369-4291-b8f1-7b46d4ee65c2.png)
+![image](https://user-images.githubusercontent.com/43846907/216084338-f1c14c30-a369-4291-b8f1-7b46d4ee65c2.png)
 
-`	`建立好矩陣後欲求E=|Ax-y|^2的最小值，|Ax-y|^2 = (Ax-y)^T ( Ax – y )
+建立好矩陣後欲求E=|Ax-y|^2的最小值，|Ax-y|^2 = (Ax-y)^T ( Ax – y )
 
-`	`假設 y = 0 則 E=|Ax|^2 = x^T A^T Ax ，因A^TA 是 symmetric positive semidefine 所以 A^TA 的特徵值都大於0且λ1 <= λ2 <=…. Λq，所以E(x) E(e1) = x^TA^TAx – e1^T A^TA e1  
+假設 y = 0 則 E=|Ax|^2 = x^T A^T Ax ，因A^TA 是 symmetric positive semidefine 所以 A^TA 的特徵值都大於0且λ1 <= λ2 <=…. Λq，所以E(x) E(e1) = x^TA^TAx – e1^T A^TA e1 = λ1u1^2 + … + λquq^2 - λ1 >=λ1(u1^2+ … + uq^2 - 1) = 0
 
-`			`= λ1u1^2 + … + λquq^2 - λ1
+因此使Ex有最小值的eigenvector 就是對應最小的eigenvalue=>e1
 
-`			`>=λ1(u1^2+ … + uq^2 - 1) = 0
+因此我用SVD分解得到eigenvalue 再將最小的eigenvector得出
 
-`	`因此使Ex有最小值的eigenvector 就是對應最小的eigenvalue=>e1
+得到矩陣mTrans作為我的Projective Mapping Matrix
 
-`	`因此我用SVD分解得到eigenvalue 再將最小的eigenvector得出
+![image](https://user-images.githubusercontent.com/43846907/216084371-65a7f4ef-8e30-43f9-a1eb-cc5eb23a1ac4.png)
 
-`	`得到矩陣mTrans作為我的Projective Mapping Matrix
+**步驟三:**
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084371-65a7f4ef-8e30-43f9-a1eb-cc5eb23a1ac4.png)
+得到矩陣mTrans之後就需要透過RANSAC來驗證我剛剛所帶入的四組		點是否能夠讓大部分的特徵點都能夠對應到初始圖的特徵點。
 
-`	`**步驟三:**
-
-`		`得到矩陣mTrans之後就需要透過RANSAC來驗證我剛剛所帶入的四組		點是否能夠讓大部分的特徵點都能夠對應到初始圖的特徵點。
-
-`		`**RANSAC:**
+**RANSAC:**
 
 ![image](https://user-images.githubusercontent.com/43846907/216084396-e35bfa8f-d984-4a69-b2cd-09b3f23eaa6b.png)
 
