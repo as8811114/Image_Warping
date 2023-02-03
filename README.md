@@ -80,42 +80,21 @@ SIFT達到旋轉不變性的方法就是先將圖片旋轉到主方向，而這�
 
 ![image](https://user-images.githubusercontent.com/43846907/216084396-e35bfa8f-d984-4a69-b2cd-09b3f23eaa6b.png)
 
-先隨機從前面所候補的特徵點當中抽取4組點來當作轉換矩陣的等式		來找到我需要的mTrans矩陣，找到mTrans矩陣之後我將第二張圖的
+先隨機從前面所候補的特徵點當中抽取4組點來當作轉換矩陣的等式來找到我需要的mTrans矩陣，找到mTrans矩陣之後我將第二張圖的特徵點dot我所算出的mTrans矩陣並且存在corPoint當中，並且透過平方開根號的方式來計算兩組點的距離dis，若dis小於等於最一開始所候選1/4特徵點距離，則加入inliers其餘則為outliers，若最後正確率大於90%則判定這次的mTrans矩陣為好的矩陣，若低於則重複尋找。
 
-特徵點dot我所算出的mTrans矩陣並且存在corPoint當中，並且透過
-
-平方開根號的方式來計算兩組點的距離dis，若dis小於等於最一開始
-
-所候選1/4特徵點距離，則加入inliers其餘則為outliers，若最後
-
-Inliers比outliers大於98%則判定這次的mTrans矩陣為好的矩陣，若
-
-低於則重複尋找。
-
-![image](https://user-images.githubusercontent.com/43846907/216084456-5ed39736-7172-4695-b152-dd02aaf3eecb.png)
-
+![image](https://user-images.githubusercontent.com/43846907/216522626-f2b52819-cb9e-43bc-9fd5-578ba140cd37.png)
 ![image](https://user-images.githubusercontent.com/43846907/216084472-a05ad69f-9862-4f03-a337-6f939c829918.png)
 
 
 **步驟四:**
 
-找到了所需要的矩陣之後我就將兩張圖片透過Warp函式開始將第二
-
-張圖的像素轉移到第一張圖上。
+找到了所需要的矩陣之後我就將兩張圖片透過Warp函式開始將第二張圖的像素轉移到第一張圖上。
 
 ![image](https://user-images.githubusercontent.com/43846907/216084508-fefa6b0f-d2a8-428e-acd4-6b0d5118cf33.png)
 
 ![image](https://user-images.githubusercontent.com/43846907/216084520-99a240bd-6925-4c58-b55e-919acdf28608.png)
 
-在Warp函式當中我先將所有的點轉移到第一張圖當中並且將轉移
-
-過去超出範圍的值用邊界值來補，並且在有值的地方將flag設定為1
-
-在後面補缺值的時候可以忽略不做，在補值之前我先將第二張圖的四
-
-個邊界點算出轉移後的四個頂點，這四個頂點用於後面確認是否為在
-
-正確圖片範圍內的四點。
+在Warp函式當中我先將所有的點轉移到第一張圖當中並且將轉移過去超出範圍的值用邊界值來補，並且在有值的地方將flag設定為1在後面補缺值的時候可以忽略不做，在補值之前我先將第二張圖的四個邊界點算出轉移後的四個頂點，這四個頂點用於後面確認是否為在正確圖片範圍內的四點。
 
 ![image](https://user-images.githubusercontent.com/43846907/216084772-f60f3911-2027-4d4a-8c67-5b7aab133472.png)
 
@@ -123,15 +102,7 @@ Inliers比outliers大於98%則判定這次的mTrans矩陣為好的矩陣，若
 
 ![image](https://user-images.githubusercontent.com/43846907/216084787-f769afd2-5fb3-4fbd-a22f-d6ab4e5f018e.png)
 
-做完之後我再重新掃描一次圖片，將那些flag為的那些點掃描出來，
-
-並且再去看這個缺值的地方是否是在圖片的範圍裏面，若有的話再去
-
-檢測看看八鄰點是否是可以拿來補值得像素點，若不是則繼續往後找
-
-若有值直接將空缺的pixel中填入鄰邊向素將空缺的點補完後，回傳轉
-
-移過後的image完成影像拼接。
+做完之後我再重新掃描一次圖片，將那些flag為的那些點掃描出來，並且再去看這個缺值的地方是否是在圖片的範圍裏面，若有的話再去檢測看看八鄰點是否是可以拿來補值得像素點，若不是則繼續往後找若有值直接將空缺的pixel中填入鄰邊向素將空缺的點補完後，回傳轉移過後的image完成影像拼接。
 
 ![image](https://user-images.githubusercontent.com/43846907/216084813-97a2a760-c2dc-4eb5-8899-96029ef14953.png)
 ## 效果圖
