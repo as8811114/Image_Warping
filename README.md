@@ -5,13 +5,13 @@
 # 實作細節
 **實作:**
 
-`	`**步驟1:**
+**步驟1:**
 
 首先我先透過SIFT演算法找出兩張待轉換的圖片的所有特徵點，
 
 ![image](https://user-images.githubusercontent.com/43846907/216083862-c9503704-b1ad-48b7-9aca-503604bb014d.png)
 
-`    `**SIFT(尺度不變特徵轉換)演算法:**
+**SIFT(尺度不變特徵轉換)演算法:**
 
 SIFT演算法是一只用來偵測圖片特徵點的演算法，SIFT演算法當中具有尺度不變性，旋轉圖片、改變影像亮度、拍攝視角等皆不會影響特徵點的找尋，因為一個點是否為特徵點會因為周圍的光暗程度以及圖片大小程度有所關係，例如有個點可能在整體來看為特徵點，但是若將該點放大到很多倍之後可能會變為一條線視為非特徵點。
 
@@ -38,84 +38,59 @@ DOG透過將兩個相鄰的高斯尺度影像相減來獲得，獲得了DOG之�
 
 SIFT達到旋轉不變性的方法就是先將圖片旋轉到主方向，而這個方向是透過圖片的梯度所得到，這樣就能保證座標軸與影像的相對位址保持一致而達到旋轉不變性。
 
-`	`**步驟2:**
+**步驟2:**
 
-`		`做完了SIFT找到特徵點後我就有了第一張圖的特徵點描述子res1 和 第二張圖的特徵點描述子res2，我將他們使用KNN找出兩組特徵點間，最相似的三個特徵點來將他們加入到候選的對齊點當中，透過比對m n k 三點的距離來找出一個距離最短的點數當作候選點放入good陣列裡面。
+做完了SIFT找到特徵點後我就有了第一張圖的特徵點描述子res1 和 第二張圖的特徵點描述子res2，我將他們使用KNN找出兩組特徵點間，最相似的三個特徵點來將他們加入到候選的對齊點當中，透過比對m n k 三點的距離來找出一個距離最短的點數當作候選點放入good陣列裡面。
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084237-b50a0cca-5fd7-490b-b410-233bc4352442.png)
+![image](https://user-images.githubusercontent.com/43846907/216084237-b50a0cca-5fd7-490b-b410-233bc4352442.png)
 
-`	`接下來需要找到一個合適的Projection Matrix來將圖片二的點扭曲對應到圖片一當中，這個Projection Matrix最好能夠挑的夠精準這樣才能夠讓誤差最小，因此這邊需要使用RANSAC演算法來挑出合適的Matrix點。
+接下來需要找到一個合適的Projection Matrix來將圖片二的點扭曲對應到圖片一當中，這個Projection Matrix最好能夠挑的夠精準這樣才能夠讓誤差最小，因此這邊需要使用RANSAC演算法來挑出合適的Matrix點。
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084281-7e1cd968-a4cc-4fa9-90e6-46a1bafda69b.png)
+![image](https://user-images.githubusercontent.com/43846907/216084281-7e1cd968-a4cc-4fa9-90e6-46a1bafda69b.png)
 
-`	`在做RANSAC之前需要先有Projective Mapping Matrix 因此我先計算出所需要的矩陣。
+在做RANSAC之前需要先有Projective Mapping Matrix 因此我先計算出所需要的矩陣。
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084312-6eff643c-2796-4f27-8585-9db15f59ea67.png)
+![image](https://user-images.githubusercontent.com/43846907/216084312-6eff643c-2796-4f27-8585-9db15f59ea67.png)
 
-`	`將4組候選點整理成Ax=0的形式，A為上圖的左邊大矩陣而x為右邊A11~A33矩陣，因此我先將左邊矩陣給建立好如下圖。
+將4組候選點整理成Ax=0的形式，A為上圖的左邊大矩陣而x為右邊A11~A33矩陣，因此我先將左邊矩陣給建立好如下圖。
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084338-f1c14c30-a369-4291-b8f1-7b46d4ee65c2.png)
+![image](https://user-images.githubusercontent.com/43846907/216084338-f1c14c30-a369-4291-b8f1-7b46d4ee65c2.png)
 
-`	`建立好矩陣後欲求E=|Ax-y|^2的最小值，|Ax-y|^2 = (Ax-y)^T ( Ax – y )
+建立好矩陣後欲求E=|Ax-y|^2的最小值，|Ax-y|^2 = (Ax-y)^T ( Ax – y )
 
-`	`假設 y = 0 則 E=|Ax|^2 = x^T A^T Ax ，因A^TA 是 symmetric positive semidefine 所以 A^TA 的特徵值都大於0且λ1 <= λ2 <=…. Λq，所以E(x) E(e1) = x^TA^TAx – e1^T A^TA e1  
+假設 y = 0 則 E=|Ax|^2 = x^T A^T Ax ，因A^TA 是 symmetric positive semidefine 所以 A^TA 的特徵值都大於0且λ1 <= λ2 <=…. Λq，所以E(x) E(e1) = x^TA^TAx – e1^T A^TA e1 = λ1u1^2 + … + λquq^2 - λ1 >=λ1(u1^2+ … + uq^2 - 1) = 0
 
-`			`= λ1u1^2 + … + λquq^2 - λ1
+因此使Ex有最小值的eigenvector 就是對應最小的eigenvalue=>e1
 
-`			`>=λ1(u1^2+ … + uq^2 - 1) = 0
+因此我用SVD分解得到eigenvalue 再將最小的eigenvector得出
 
-`	`因此使Ex有最小值的eigenvector 就是對應最小的eigenvalue=>e1
+得到矩陣mTrans作為我的Projective Mapping Matrix
 
-`	`因此我用SVD分解得到eigenvalue 再將最小的eigenvector得出
+![image](https://user-images.githubusercontent.com/43846907/216084371-65a7f4ef-8e30-43f9-a1eb-cc5eb23a1ac4.png)
 
-`	`得到矩陣mTrans作為我的Projective Mapping Matrix
+**步驟三:**
 
-`	`![image](https://user-images.githubusercontent.com/43846907/216084371-65a7f4ef-8e30-43f9-a1eb-cc5eb23a1ac4.png)
+得到矩陣mTrans之後就需要透過RANSAC來驗證我剛剛所帶入的四組		點是否能夠讓大部分的特徵點都能夠對應到初始圖的特徵點。
 
-`	`**步驟三:**
-
-`		`得到矩陣mTrans之後就需要透過RANSAC來驗證我剛剛所帶入的四組		點是否能夠讓大部分的特徵點都能夠對應到初始圖的特徵點。
-
-`		`**RANSAC:**
+**RANSAC:**
 
 ![image](https://user-images.githubusercontent.com/43846907/216084396-e35bfa8f-d984-4a69-b2cd-09b3f23eaa6b.png)
 
-先隨機從前面所候補的特徵點當中抽取4組點來當作轉換矩陣的等式		來找到我需要的mTrans矩陣，找到mTrans矩陣之後我將第二張圖的
+先隨機從前面所候補的特徵點當中抽取4組點來當作轉換矩陣的等式來找到我需要的mTrans矩陣，找到mTrans矩陣之後我將第二張圖的特徵點dot我所算出的mTrans矩陣並且存在corPoint當中，並且透過平方開根號的方式來計算兩組點的距離dis，若dis小於等於最一開始所候選1/4特徵點距離，則加入inliers其餘則為outliers，若最後正確率大於90%則判定這次的mTrans矩陣為好的矩陣，若低於則重複尋找。
 
-特徵點dot我所算出的mTrans矩陣並且存在corPoint當中，並且透過
-
-平方開根號的方式來計算兩組點的距離dis，若dis小於等於最一開始
-
-所候選1/4特徵點距離，則加入inliers其餘則為outliers，若最後
-
-Inliers比outliers大於98%則判定這次的mTrans矩陣為好的矩陣，若
-
-低於則重複尋找。
-
-![image](https://user-images.githubusercontent.com/43846907/216084456-5ed39736-7172-4695-b152-dd02aaf3eecb.png)
-
+![image](https://user-images.githubusercontent.com/43846907/216522626-f2b52819-cb9e-43bc-9fd5-578ba140cd37.png)
 ![image](https://user-images.githubusercontent.com/43846907/216084472-a05ad69f-9862-4f03-a337-6f939c829918.png)
 
 
 **步驟四:**
 
-找到了所需要的矩陣之後我就將兩張圖片透過Warp函式開始將第二
-
-張圖的像素轉移到第一張圖上。
+找到了所需要的矩陣之後我就將兩張圖片透過Warp函式開始將第二張圖的像素轉移到第一張圖上。
 
 ![image](https://user-images.githubusercontent.com/43846907/216084508-fefa6b0f-d2a8-428e-acd4-6b0d5118cf33.png)
 
 ![image](https://user-images.githubusercontent.com/43846907/216084520-99a240bd-6925-4c58-b55e-919acdf28608.png)
 
-在Warp函式當中我先將所有的點轉移到第一張圖當中並且將轉移
-
-過去超出範圍的值用邊界值來補，並且在有值的地方將flag設定為1
-
-在後面補缺值的時候可以忽略不做，在補值之前我先將第二張圖的四
-
-個邊界點算出轉移後的四個頂點，這四個頂點用於後面確認是否為在
-
-正確圖片範圍內的四點。
+在Warp函式當中我先將所有的點轉移到第一張圖當中並且將轉移過去超出範圍的值用邊界值來補，並且在有值的地方將flag設定為1在後面補缺值的時候可以忽略不做，在補值之前我先將第二張圖的四個邊界點算出轉移後的四個頂點，這四個頂點用於後面確認是否為在正確圖片範圍內的四點。
 
 ![image](https://user-images.githubusercontent.com/43846907/216084772-f60f3911-2027-4d4a-8c67-5b7aab133472.png)
 
@@ -123,15 +98,7 @@ Inliers比outliers大於98%則判定這次的mTrans矩陣為好的矩陣，若
 
 ![image](https://user-images.githubusercontent.com/43846907/216084787-f769afd2-5fb3-4fbd-a22f-d6ab4e5f018e.png)
 
-做完之後我再重新掃描一次圖片，將那些flag為的那些點掃描出來，
-
-並且再去看這個缺值的地方是否是在圖片的範圍裏面，若有的話再去
-
-檢測看看八鄰點是否是可以拿來補值得像素點，若不是則繼續往後找
-
-若有值直接將空缺的pixel中填入鄰邊向素將空缺的點補完後，回傳轉
-
-移過後的image完成影像拼接。
+做完之後我再重新掃描一次圖片，將那些flag為的那些點掃描出來，並且再去看這個缺值的地方是否是在圖片的範圍裏面，若有的話再去檢測看看八鄰點是否是可以拿來補值得像素點，若不是則繼續往後找若有值直接將空缺的pixel中填入鄰邊向素將空缺的點補完後，回傳轉移過後的image完成影像拼接。
 
 ![image](https://user-images.githubusercontent.com/43846907/216084813-97a2a760-c2dc-4eb5-8899-96029ef14953.png)
 ## 效果圖
