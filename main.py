@@ -194,8 +194,9 @@ def Stitch(photo1,photo2):
     #RANSAC
     aaa = []
     bbb = []
+    count = 0
+    stand = 0.9
     while(True):
-        
         inliers = 0
         outliers = 0
 
@@ -235,9 +236,15 @@ def Stitch(photo1,photo2):
                 outliers += 1
         if(outliers <= 1):
             outliers = 1
-        if(inliers /  (inliers + outliers) >= 0.9):
+        if(inliers /  (inliers + outliers) >= stand):
             print("Find!")
             break
+        else:
+            count += 1
+        if(count >= 5000):
+            count = 0
+            stand = stand - 0.05
+                
         
     
     np.set_printoptions(suppress=True)
