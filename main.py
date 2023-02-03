@@ -235,7 +235,7 @@ def Stitch(photo1,photo2):
                 outliers += 1
         if(outliers <= 1):
             outliers = 1
-        if(inliers /  outliers > 0.98):
+        if(inliers /  (inliers + outliers) >= 0.9):
             print("Find!")
             break
         
